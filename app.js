@@ -8,7 +8,6 @@ const sequelize = require('./config/db');
 
 const PORT = process.env.PORT
 
-app.use(express.static("public"));
 app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "views"));
 
@@ -46,4 +45,7 @@ connectDB();
 app.listen(PORT, () => {
     console.log(`API listening on port ${PORT}`);
 });
+
+app.use(express.static("public"));
+
 
