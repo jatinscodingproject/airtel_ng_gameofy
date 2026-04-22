@@ -21,10 +21,10 @@ cron.schedule("0 0 * * *", async () => {
 
       if (Number(user.channel_id) === 167) {
         sdpApiKey = process.env.SDP_API_KEY_DAILY;
-        message = `Daily Kidszonepro pack active. Access here: https://airtelng.kidszonepro.com/?msisdn=${user.msisdn}`;
+        message = `Daily Kidszonepro pack active. Access here: https://airtelng.gameofyy.com/?msisdn=${user.msisdn}`;
       } else if (Number(user.channel_id) === 168) {
         sdpApiKey = process.env.SDP_API_KEY_WEEKLY;
-        message = `Weekly Kidszonepro pack active. Access here: https://airtelng.kidszonepro.com/?msisdn=${user.msisdn}`;
+        message = `Weekly Kidszonepro pack active. Access here: https://airtelng.gameofyy.com/?msisdn=${user.msisdn}`;
       }
 
       if (sdpApiKey && message) {
