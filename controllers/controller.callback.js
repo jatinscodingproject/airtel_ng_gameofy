@@ -64,10 +64,10 @@ const chargeCallback = async (req, res) => {
 
     if (Number(channel_id) === 167) {
         sdpApiKey = process.env.SDP_API_KEY_DAILY;
-        message = `You have subscribed to the DAILY Kidszonepro pack. Here you can access it https://airtelng.kidszonepro.com/?msisdn=${msisdn}`;
+        message = `You have subscribed to the DAILY Kidszonepro pack. Here you can access it https://airtelng.gameofyy.com/?msisdn=${msisdn}`;
       } else if (Number(channel_id) === 168) {
         sdpApiKey = process.env.SDP_API_KEY_WEEKLY;
-        message = `You have subscribed to the WEEKLY Kidszonepro pack. Here you can access it https://airtelng.kidszonepro.com/?msisdn=${msisdn}`;
+        message = `You have subscribed to the WEEKLY Kidszonepro pack. Here you can access it https://airtelng.gameofyy.com/?msisdn=${msisdn}`;
       }
 
       if (sdpApiKey) {
