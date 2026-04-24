@@ -62,12 +62,12 @@ const chargeCallback = async (req, res) => {
       original_mo,
     });
 
-    if (Number(channel_id) === 167) {
+    if (Number(channel_id) === 173) {
         sdpApiKey = process.env.SDP_API_KEY_DAILY;
-        message = `You have subscribed to the DAILY Kidszonepro pack. Here you can access it https://airtelng.gameofyy.com/?msisdn=${msisdn}`;
-      } else if (Number(channel_id) === 168) {
+        message = `You have subscribed to the DAILY gameofyy pack. Here you can access it https://airtelng.gameofyy.com/?msisdn=${msisdn}`;
+      } else if (Number(channel_id) === 171) {
         sdpApiKey = process.env.SDP_API_KEY_WEEKLY;
-        message = `You have subscribed to the WEEKLY Kidszonepro pack. Here you can access it https://airtelng.gameofyy.com/?msisdn=${msisdn}`;
+        message = `You have subscribed to the WEEKLY gameofyy pack. Here you can access it https://airtelng.gameofyy.com/?msisdn=${msisdn}`;
       }
 
       if (sdpApiKey) {
