@@ -1,10 +1,19 @@
 const axios = require("axios");
 const AnCallbackLog = require("../models/models.callback");
 const Subscription = require("../models/models.subscription");
-require('dotenv').config();
+require("dotenv").config();
 
 const chargeCallback = async (req, res) => {
-  console.log("api hitted" ,req.body)
+  console.log("API Hit");
+
+  // Merge GET query + POST body
+  const data = {
+    ...req.query,
+    ...req.body,
+  };
+
+  console.log("Request Data:", data);
+
   try {
     const {
       user_id,
@@ -16,8 +25,8 @@ const chargeCallback = async (req, res) => {
       amount,
       original_mo,
       transaction_id,
-      subscription_id
-    } = req.body;
+      subscription_id,
+    } = data;
 
     if (!msisdn || !channel_id) {
       return res.status(400).json({
@@ -33,6 +42,7 @@ const chargeCallback = async (req, res) => {
     let sdpApiKey = null;
     let message = null;
 
+    // Subscription update
     if (action === "sub") {
       await Subscription.update(
         {
@@ -40,19 +50,59 @@ const chargeCallback = async (req, res) => {
           transaction_id: transaction_id || null,
           subscription_id: subscription_id || null,
         },
-        { where: { msisdn, channel_id } }
+        {
+          where: {
+            msisdn,
+            channel_id,
+          },
+        }
       );
-
-      
     }
 
-    const apiKeyForLog = sdpApiKey || "N/A";
+    // SMS Logic
+    if (
+      Number(channel_id) === 173 &&
+      (action === "sub" || action === "renewal")
+    ) {
+      sdpApiKey = process.env.SDP_API_KEY_DAILY;
 
+      message = `You have subscribed to the DAILY gameofyy pack. Here you can access it https://airtelng.gameofyy.com/?msisdn=${msisdn}`;
+    } else if (
+      Number(channel_id) === 171 &&
+      (action === "sub" || action === "renewal")
+    ) {
+      sdpApiKey = process.env.SDP_API_KEY_WEEKLY;
+
+      message = `You have subscribed to the WEEKLY gameofyy pack. Here you can access it https://airtelng.gameofyy.com/?msisdn=${msisdn}`;
+    }
+
+    // Send SMS
+    if (sdpApiKey) {
+      try {
+        smsResponse = await axios.get(
+          "https://mediaworldsdp.com/en/api/get/users.send_sms",
+          {
+            params: {
+              api_key: sdpApiKey,
+              msisdn,
+              channel_id,
+              extra: JSON.stringify({ message }),
+            },
+          }
+        );
+
+        console.log("SMS Response:", smsResponse.data);
+      } catch (smsError) {
+        console.error("SMS Sending Failed:", smsError.message);
+      }
+    }
+
+    // Save callback log
     await AnCallbackLog.create({
       user_id,
       notification_id,
       notification_time,
-      api_key: apiKeyForLog,
+      api_key: sdpApiKey || "N/A",
       msisdn,
       channel_id,
       amount: amount ? Number(amount) : null,
@@ -62,34 +112,9 @@ const chargeCallback = async (req, res) => {
       original_mo,
     });
 
-    if (Number(channel_id) === 173 && (action === "sub" || action === "renewal")) {
-        sdpApiKey = process.env.SDP_API_KEY_DAILY;
-        message = `You have subscribed to the DAILY gameofyy pack. Here you can access it https://airtelng.gameofyy.com/?msisdn=${msisdn}`;
-      } else if (Number(channel_id) === 171  && (action === "sub" || action === "renewal")) {
-        sdpApiKey = process.env.SDP_API_KEY_WEEKLY;
-        message = `You have subscribed to the WEEKLY gameofyy pack. Here you can access it https://airtelng.gameofyy.com/?msisdn=${msisdn}`;
-      }
-
-      if (sdpApiKey) {
-        try {
-          smsResponse = await axios.get(
-            "https://mediaworldsdp.com/en/api/get/users.send_sms",
-            {
-              params: {
-                api_key: sdpApiKey,
-                msisdn: msisdn,
-                channel_id: channel_id,
-                extra: JSON.stringify({ message }),
-              },
-            }
-          );
-          console.log(smsResponse)
-        } catch (smsError) {
-          console.error("SMS Sending Failed:", smsError.message);
-        }
-      }
-
-    return res.status(200).json({ status: "ACK" });
+    return res.status(200).json({
+      status: "ACK",
+    });
   } catch (error) {
     console.error("Charge callback error:", error);
 
