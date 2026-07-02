@@ -62,14 +62,14 @@ const chargeCallback = async (req, res) => {
     // SMS Logic
     if (
       Number(channel_id) === 173 &&
-      (action === "sub" || action === "renewal")
+      (action === "sub" || action === "renewal" || action === "first_charge")
     ) {
       sdpApiKey = process.env.SDP_API_KEY_DAILY;
 
       message = `You have subscribed to the DAILY gameofyy pack. Here you can access it https://airtelng.gameofyy.com/?msisdn=${msisdn}`;
     } else if (
       Number(channel_id) === 171 &&
-      (action === "sub" || action === "renewal")
+      (action === "sub" || action === "renewal" || action === "first_charge")
     ) {
       sdpApiKey = process.env.SDP_API_KEY_WEEKLY;
 
