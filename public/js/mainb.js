@@ -126,44 +126,129 @@
         return "arcade";
     }
 
-    function renderGamesFromServer() {
-        serverGames.forEach((game, index) => {
-            const category = getCategory(game);
-            const container = document.getElementById(`${category}Games`);
-            const newgames = game.split("/")[0]
-            if (!container) return;
+    // function renderGamesFromServer() {
+    //     serverGames.forEach((game, index) => {
+    //         const category = getCategory(game);
+    //         const container = document.getElementById(`${category}Games`);
+    //         const newgames = game.split("/")[0]
+    //         if (!container) return;
 
-            const card = document.createElement("div");
-            card.className = "game-card card-3d bg-gray-800 rounded-xl overflow-hidden neon-border";
+    //         const card = document.createElement("div");
+    //         card.className = "game-card card-3d bg-gray-800 rounded-xl overflow-hidden neon-border";
 
-            card.innerHTML = `
-                <div class="bg-gray-700 h-48 flex items-center justify-center text-4xl">
-                    <img 
-                        src="http://gamzlab.com/games/107Games/${newgames}/img.png"
-                        onerror="this.onerror=null; this.src='http://gamzlab.com/games/107Games/${newgames}/img.jpg';"
-                    >
-                </div>
+    //         card.innerHTML = `
+    //             <div class="bg-gray-700 h-48 flex items-center justify-center text-4xl">
+    //                 <img 
+    //                     src="http://gamzlab.com/games/107Games/${newgames}/img.png"
+    //                     onerror="this.onerror=null; this.src='http://gamzlab.com/games/107Games/${newgames}/img.jpg';"
+    //                 >
+    //             </div>
 
-                <div class="p-4">
-                    <h3 class="text-xl font-bold" style="color:white;">${newgames}</h3>
+    //             <div class="p-4">
+    //                 <h3 class="text-xl font-bold" style="color:white;">${newgames}</h3>
 
-                    <button onclick="playGame('${game}')"
-                        class="w-full mt-3 bg-[#ff6b00] text-white py-2 rounded-lg font-medium">
-                        Play Now
-                    </button>
-                </div>
-            `;
+    //                 <button onclick="playGame('${game}')"
+    //                     class="w-full mt-3 bg-[#ff6b00] text-white py-2 rounded-lg font-medium">
+    //                     Play Now
+    //                 </button>
+    //             </div>
+    //         `;
 
 
-            container.appendChild(card);
-        });
+    //         container.appendChild(card);
+    //     });
+    // }
+
+    function createGameCard(game) {
+    const category = getCategory(game);
+    const container = document.getElementById(`${category}Games`);
+
+    if (!container) return null;
+
+    const gameName = game.split("/")[0];
+
+    const card = document.createElement("div");
+
+    card.className =
+        "game-card card-3d bg-gray-800 rounded-xl overflow-hidden neon-border";
+
+    card.innerHTML = `
+        <div class="bg-gray-700 h-48 flex items-center justify-center">
+            <img
+                loading="lazy"
+                decoding="async"
+                src="https://gamzlab.com/games/107Games/${gameName}/img.png"
+                onerror="this.onerror=null;this.src='https://gamzlab.com/games/107Games/${gameName}/img.jpg';"
+            >
+        </div>
+
+        <div class="p-4">
+            <h3 class="text-xl font-bold text-white">
+                ${gameName}
+            </h3>
+
+            <button
+                onclick="playGame('${game}')"
+                class="w-full mt-3 bg-[#ff6b00] text-white py-2 rounded-lg">
+                Play Now
+            </button>
+        </div>
+    `;
+
+    return card;
+}
+
+function renderGamesInChunks(index = 0) {
+
+    const chunkSize = 12;
+
+    const chunk = serverGames.slice(index, index + chunkSize);
+
+    const containers = {};
+
+    chunk.forEach(game => {
+
+        const category = getCategory(game);
+
+        if (!containers[category]) {
+            containers[category] = document.createDocumentFragment();
+        }
+
+        const card = createGameCard(game);
+
+        if (card) {
+            containers[category].appendChild(card);
+        }
+
+    });
+
+    Object.keys(containers).forEach(category => {
+
+        const container = document.getElementById(`${category}Games`);
+
+        if (container) {
+            container.appendChild(containers[category]);
+        }
+
+    });
+
+    if (index + chunkSize < serverGames.length) {
+
+        if ("requestIdleCallback" in window) {
+            requestIdleCallback(() => renderGamesInChunks(index + chunkSize));
+        } else {
+            setTimeout(() => renderGamesInChunks(index + chunkSize), 30);
+        }
+
     }
+
+}
 
     function playGame(game) {
     const iframe = document.getElementById("gameFrame");
     const modal = document.getElementById("gameModal");
 
-    iframe.src = `https://airtelng.gameofyy.com/games/107Games/${game}/index.html`;
+    iframe.src = `https://gamzlab.com/games/107Games/${game}/index.html`;
     modal.classList.remove("hidden");
 }
     function closeGame() {
@@ -183,19 +268,15 @@ function openFullscreen() {
         iframe.webkitRequestFullscreen();
     }
 }
+   
+
+
     window.addEventListener("load", () => {
-        renderGamesFromServer();
+        document.getElementById("loadingScreen").classList.add("hidden");
+        document.getElementById("mainContent").classList.add("visible");
+
+        renderGamesInChunks();
     });
-
-
-    window.addEventListener('load', () => {
-        setTimeout(() => {
-            document.getElementById('loadingScreen').classList.add('hidden');
-            document.getElementById('mainContent').classList.add('visible');
-            renderGamesByCategory();
-        }, 2500);
-    });
-
 
     async function onConfigChange(config) {
         const topbarTextEl = document.getElementById('topbarText');
