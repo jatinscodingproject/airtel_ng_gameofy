@@ -10,7 +10,7 @@ require("dotenv").config();
 cron.schedule(
   "* * * * *",
   async () => {
-    console.log("Running Fitofyy weekly SMS cron");
+    console.log("Running gameofyy weekly SMS cron");
 
     try {
       const logs = await AnCallbackLog.findAll({
@@ -46,7 +46,7 @@ cron.schedule(
           continue;
         }
 
-        const message = `You have subscribed to the WEEKLY fitofyy pack. Here you can access it https://airtelng.fitofyy.com/?msisdn=${user.msisdn}`;
+        const message = `You have subscribed to the WEEKLY gameofyy pack. Here you can access it https://airtelng.gameofyy.com/?msisdn=${user.msisdn}`;
 
         try {
           await axios.get(
@@ -67,7 +67,7 @@ cron.schedule(
         }
       }
 
-      console.log("✅ Fitofyy weekly SMS cron completed");
+      console.log("✅ gameofyy weekly SMS cron completed");
 
     } catch (error) {
       console.error("❌ Cron error:", error.message);
