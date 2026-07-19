@@ -206,20 +206,37 @@ function saveToken(token) {
     );
 }
 
-(async function () {
+function hideLoader() {
     const loader = document.getElementById("loadingScreen");
-    const content = document.getElementById("mainContent");
 
-    loader.style.display = "flex";
-    content.style.display = "none";
+    if (!loader) return;
+
+    loader.style.opacity = "0";
+    loader.style.visibility = "hidden";
+
+    setTimeout(() => {
+        loader.style.display = "none";
+    }, 300);
+}
+
+window.addEventListener("load", () => {
+    initialize();
+});
+
+async function initialize() {
+
+    const loaderTimeout = setTimeout(() => {
+        hideLoader();
+    }, 5000);
 
     try {
-        // Already logged in
-        const existingToken = getToken();
 
-        if (existingToken) {
-            loader.style.display = "none";
-            content.style.display = "block";
+        // Already logged in
+        const token = getToken();
+
+        if (token) {
+            clearTimeout(loaderTimeout);
+            hideLoader();
             return;
         }
 
@@ -229,43 +246,54 @@ function saveToken(token) {
             params.get("msisdn") ||
             localStorage.getItem("mobile");
 
-        if (msisdn) {
-            const response = await axios.post(
-                "/check-subscription",
-                {
-                    msisdn
-                }
+        if (!msisdn) {
+            clearTimeout(loaderTimeout);
+            hideLoader();
+            return;
+        }
+
+        const response = await axios.post(
+            "/check-subscription",
+            {
+                msisdn
+            },
+            {
+                timeout: 5000
+            }
+        );
+
+        if (
+            response.data.success &&
+            response.data.active &&
+            response.data.token
+        ) {
+
+            saveToken(response.data.token);
+
+            localStorage.setItem("mobile", msisdn);
+
+            window.history.replaceState(
+                {},
+                document.title,
+                window.location.pathname
             );
 
-            if (
-                response.data.success &&
-                response.data.active &&
-                response.data.token
-            ) {
-                saveToken(response.data.token);
-
-                localStorage.setItem("mobile", msisdn);
-
-                window.history.replaceState(
-                    {},
-                    document.title,
-                    window.location.pathname
-                );
-
-                loader.style.display = "none";
-                content.style.display = "block";
-                return;
-            }
-
-            localStorage.removeItem("authData");
-            localStorage.removeItem("mobile");
+            clearTimeout(loaderTimeout);
+            hideLoader();
+            return;
         }
 
         // User is not subscribed
+        localStorage.removeItem("authData");
+        localStorage.removeItem("mobile");
+
         const subscribe = await axios.post(
             "/create-subscription",
             {
                 plan: "daily"
+            },
+            {
+                timeout: 5000
             }
         );
 
@@ -274,17 +302,19 @@ function saveToken(token) {
             return;
         }
 
-        loader.style.display = "none";
-        content.style.display = "block";
+        clearTimeout(loaderTimeout);
+        hideLoader();
+
     } catch (err) {
+
         console.error(err);
 
         localStorage.removeItem("authData");
         localStorage.removeItem("mobile");
 
-        loader.style.display = "none";
-        content.style.display = "block";
+        clearTimeout(loaderTimeout);
+        hideLoader();
     }
-})();
+}
 </script>
 </html>
